@@ -12,7 +12,7 @@ setup(name='starscale',
 	long_description=long_description,
 	author='Michael Hirsch',
 	url='https://github.com/scienceopen/starscale',
-	install_requires=[''],
+	install_requires=['photutils'],
    	dependency_links = [''],
       packages=['starscale'],
 	  )
