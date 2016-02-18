@@ -7,4 +7,8 @@ One has to back out atmospheric attenuation for higher fidelity with known stell
 but if you have cameras closely spaced (few km standoff), with same optics and filters,
 looking in the same direction,
 as a first pass one may just identify stars and take their intensity ratios.
+
+First you need some video without any aurora or clouds at all, not even faint wisps.
+
+
 """
