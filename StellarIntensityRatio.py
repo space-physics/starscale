@@ -32,32 +32,42 @@ from photutils.background import Background
 from photutils import CircularAperture
 from astropy.visualization import SqrtStretch
 from astropy.visualization.mpl_normalize import ImageNormalize
-from matplotlib.pyplot import figure,show
+from matplotlib.pyplot import figure,subplots,show
 #
 from astrometry_azel.imgAvgStack import meanstack #reads the typical formats our group stores images in
 #
-#infn = '../astrometry_azel/test/apod4.fits'
-infn = '~/Dropbox/aurora_data/StudyEvents/2013-04-14/HST/hst0star.h5'
-#%% load data
-data = meanstack(infn,100)[0]
-#%% flat field
+def starbright(infn,ax):
+    #%% load data
+    data = meanstack(infn,100)[0]
+    #%% flat field
 
-#%% background
-mean, median, std = sigma_clipped_stats(data, sigma=3.0, iters=5)
+    #%% background
+    mean, median, std = sigma_clipped_stats(data, sigma=3.0, iters=5)
 
-rfact=data.shape[0]//10
-cfact=data.shape[1]//10
-bg = Background(data,(rfact,cfact))
+    rfact=data.shape[0]//10
+    cfact=data.shape[1]//10
+    bg = Background(data,(rfact,cfact))
 
-dataphot = data - bg.background
-#%% source extraction
-sources = daofind(data - median, fwhm=3.0, threshold=5.*std)
-#%% plots
-positions = (sources['xcentroid'], sources['ycentroid'])
-apertures = CircularAperture(positions, r=4.)
-norm = ImageNormalize(stretch=SqrtStretch())
+    dataphot = data - bg.background
+    #%% source extraction
+    sources = daofind(data - median, fwhm=3.0, threshold=5.*std)
+    #%% plots
+    positions = (sources['xcentroid'], sources['ycentroid'])
+    apertures = CircularAperture(positions, r=4.)
+    norm = ImageNormalize(stretch=SqrtStretch())
 
-ax = figure().gca()
-ax.imshow(data, cmap='Greys', origin='lower', norm=norm)
-apertures.plot(color='blue', lw=1.5, alpha=0.5)
-show()
+    ax.imshow(data, cmap='Greys', origin='lower', norm=norm)
+    apertures.plot(ax=ax, color='blue', lw=1.5, alpha=0.5)
+    ax.set_title('{}'.format(infn))
+
+if __name__ == '__main__':
+    #fn = '../astrometry_azel/test/apod4.fits'
+    flist = ('~/Dropbox/aurora_data/StudyEvents/2013-04-14/HST/hst0star.h5',
+             '~/Dropbox/aurora_data/StudyEvents/2013-04-14/HST/hst1star.h5')
+
+    fg,axs= subplots(1,2)
+
+    for f,ax in zip(flist,axs):
+        starbright(f,ax)
+
+    show()
