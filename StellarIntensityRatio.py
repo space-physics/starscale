@@ -26,6 +26,7 @@ cd histutils
 
 based on http://photutils.readthedocs.org/en/latest/photutils/detection.html
 """
+from numpy import column_stack,array,empty
 from photutils import daofind
 from astropy.stats import sigma_clipped_stats
 from photutils.background import Background
@@ -36,7 +37,7 @@ from matplotlib.pyplot import figure,subplots,show
 #
 from astrometry_azel.imgAvgStack import meanstack #reads the typical formats our group stores images in
 #
-def starbright(infn,ax):
+def starbright(infn,ax,istar):
     #%% load data
     data = meanstack(infn,100)[0]
     #%% flat field
@@ -44,30 +45,47 @@ def starbright(infn,ax):
     #%% background
     mean, median, std = sigma_clipped_stats(data, sigma=3.0, iters=5)
 
-    rfact=data.shape[0]//10
-    cfact=data.shape[1]//10
-    bg = Background(data,(rfact,cfact))
+    rfact=data.shape[0]//64
+    cfact=data.shape[1]//64
+    bg = Background(data,(rfact,cfact),interp_order=5)
 
     dataphot = data - bg.background
     #%% source extraction
-    sources = daofind(data - median, fwhm=3.0, threshold=5.*std)
-    #%% plots
-    positions = (sources['xcentroid'], sources['ycentroid'])
-    apertures = CircularAperture(positions, r=4.)
+    sources = daofind(data - median, fwhm=3.0, threshold=3*std)
+    #%% star identification and quantification
+    XY = column_stack((sources['xcentroid'], sources['ycentroid']))
+    apertures = CircularAperture(XY, r=4.)
     norm = ImageNormalize(stretch=SqrtStretch())
+#%% plots
+    fb = figure()
+    a = fb.gca()
+    hi=a.imshow(bg.background,interpolation='none',origin='lower')
+    fb.colorbar(hi,ax=a)
+    a.set_title('background {}'.format(infn))
 
-    ax.imshow(data, cmap='Greys', origin='lower', norm=norm)
+    ax.imshow(data, cmap='Greys', origin='lower', norm=norm,interpolation='none')
+    for i,xy in enumerate(XY):
+        ax.text(xy[0],xy[1], str(i),ha='center',va='center',fontsize=16,color='w')
+
     apertures.plot(ax=ax, color='blue', lw=1.5, alpha=0.5)
+
     ax.set_title('{}'.format(infn))
+
+    return dataphot[XY[istar,1].round().astype(int),
+                    XY[istar,0].round().astype(int)]
 
 if __name__ == '__main__':
     #fn = '../astrometry_azel/test/apod4.fits'
     flist = ('~/Dropbox/aurora_data/StudyEvents/2013-04-14/HST/hst0star.h5',
              '~/Dropbox/aurora_data/StudyEvents/2013-04-14/HST/hst1star.h5')
+    # a manually identified pairing of stars (could be automatic but this is a one-off)
+    slist = array([[5,3,4,6, 7],
+                   [8,6,7,13,14]])
+
+    bstar = empty(slist.shape).T
 
     fg,axs= subplots(1,2)
-
-    for f,ax in zip(flist,axs):
-        starbright(f,ax)
+    for i,(f,ax,si) in enumerate(zip(flist,axs,slist)):
+        bstar[:,i] = starbright(f,ax,si)
 
     show()
