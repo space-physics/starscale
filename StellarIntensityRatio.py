@@ -26,7 +26,9 @@ cd histutils
 
 based on http://photutils.readthedocs.org/en/latest/photutils/detection.html
 """
-from numpy import column_stack,array,empty
+from pathlib import Path
+import h5py
+from numpy import column_stack,array,empty,rot90
 from photutils import daofind
 from astropy.stats import sigma_clipped_stats
 from photutils.background import Background
@@ -37,55 +39,69 @@ from matplotlib.pyplot import figure,subplots,show
 #
 from astrometry_azel.imgAvgStack import meanstack #reads the typical formats our group stores images in
 #
-def starbright(infn,ax,istar):
+def starbright(fnstar,fnflat,istar,axs,fg):
     #%% load data
-    data = meanstack(infn,100)[0]
+    data = meanstack(fnstar,100)[0]
     #%% flat field
-
+    flatnorm = readflat(fnflat,fnstar)
+    data = (data/flatnorm).round().astype(data.dtype)
     #%% background
-    mean, median, std = sigma_clipped_stats(data, sigma=3.0, iters=5)
+    mean, median, std = sigma_clipped_stats(data, sigma=3.0)
 
-    rfact=data.shape[0]//64
-    cfact=data.shape[1]//64
+    rfact=data.shape[0]//32
+    cfact=data.shape[1]//32
     bg = Background(data,(rfact,cfact),interp_order=5)
 
     dataphot = data - bg.background
     #%% source extraction
-    sources = daofind(data - median, fwhm=3.0, threshold=3*std)
+    sources = daofind(data - median, fwhm=3.0, threshold=5*std)
     #%% star identification and quantification
     XY = column_stack((sources['xcentroid'], sources['ycentroid']))
     apertures = CircularAperture(XY, r=4.)
     norm = ImageNormalize(stretch=SqrtStretch())
 #%% plots
-    fb = figure()
-    a = fb.gca()
-    hi=a.imshow(bg.background,interpolation='none',origin='lower')
-    fb.colorbar(hi,ax=a)
-    a.set_title('background {}'.format(infn))
+    fg.suptitle('{}'.format(fnflat.parent),fontsize='x-large')
 
-    ax.imshow(data, cmap='Greys', origin='lower', norm=norm,interpolation='none')
+    hi = axs[-3].imshow(flatnorm,interpolation='none',origin='lower')
+    fg.colorbar(hi,ax=axs[-3])
+    axs[-3].set_title('flatfield {}'.format(fnflat.stem))
+
+    hi = axs[-2].imshow(bg.background,interpolation='none',origin='lower')
+    fg.colorbar(hi,ax=axs[-2])
+    axs[-2].set_title('background {}'.format(fnstar.stem))
+
+    hi = axs[-1].imshow(data, cmap='Greys', origin='lower', norm=norm,interpolation='none')
+    fg.colorbar(hi,ax=axs[-1])
     for i,xy in enumerate(XY):
-        ax.text(xy[0],xy[1], str(i),ha='center',va='center',fontsize=16,color='w')
-
-    apertures.plot(ax=ax, color='blue', lw=1.5, alpha=0.5)
-
-    ax.set_title('{}'.format(infn))
+        axs[-1].text(xy[0],xy[1], str(i),ha='center',va='center',fontsize=16,color='w')
+    apertures.plot(ax=axs[-1], color='blue', lw=1.5, alpha=0.5)
+    axs[-1].set_title('star {}'.format(fnstar.stem))
 
     return dataphot[XY[istar,1].round().astype(int),
                     XY[istar,0].round().astype(int)]
 
+def readflat(fnflat,fnstar):
+    """
+    star is used to get orientation info, the flat field has to be rotated to match
+    the star field.
+    """
+    with h5py.File(str(fnflat),'r',libver='latest') as f, h5py.File(str(fnstar),'r',libver='latest') as g:
+        return rot90(f['flatnorm'], g['params']['rotccw'])
+
+
 if __name__ == '__main__':
     #fn = '../astrometry_azel/test/apod4.fits'
-    flist = ('~/Dropbox/aurora_data/StudyEvents/2013-04-14/HST/hst0star.h5',
-             '~/Dropbox/aurora_data/StudyEvents/2013-04-14/HST/hst1star.h5')
+    path = '~/Dropbox/aurora_data/StudyEvents/2013-04-14/HST/'
+    fstar = ('hst0star.h5', 'hst1star.h5')
+    fflat = ('hst0flat.h5', 'hst1flat.h5')
     # a manually identified pairing of stars (could be automatic but this is a one-off)
-    slist = array([[5,3,4,6, 7],
-                   [8,6,7,13,14]])
+    slist = column_stack((range(1,8), range(1,8)))
+#%%
+    path = Path(path).expanduser()
+    bstar = empty(slist.shape)
 
-    bstar = empty(slist.shape).T
-
-    fg,axs= subplots(1,2)
-    for i,(f,ax,si) in enumerate(zip(flist,axs,slist)):
-        bstar[:,i] = starbright(f,ax,si)
+    fg,axs= subplots(2,3)
+    for i,(fs,ff,ax) in enumerate(zip(fstar,fflat,axs)):
+        bstar[:,i] = starbright(path/fs, path/ff, slist[:,i], ax, fg)
 
     show()
