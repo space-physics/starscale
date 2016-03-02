@@ -28,14 +28,14 @@ based on http://photutils.readthedocs.org/en/latest/photutils/detection.html
 """
 from pathlib import Path
 import h5py
-from numpy import column_stack,array,empty,rot90
+from numpy import column_stack,empty,rot90
 from photutils import daofind
 from astropy.stats import sigma_clipped_stats
 from photutils.background import Background
 from photutils import CircularAperture
 from astropy.visualization import SqrtStretch
 from astropy.visualization.mpl_normalize import ImageNormalize
-from matplotlib.pyplot import figure,subplots,show
+from matplotlib.pyplot import subplots,show
 #
 from astrometry_azel.imgAvgStack import meanstack #reads the typical formats our group stores images in
 #
@@ -64,18 +64,18 @@ def starbright(fnstar,fnflat,istar,axs,fg):
 
     hi = axs[-3].imshow(flatnorm,interpolation='none',origin='lower')
     fg.colorbar(hi,ax=axs[-3])
-    axs[-3].set_title('flatfield {}'.format(fnflat.stem))
+    axs[-3].set_title('flatfield {}'.format(fnflat.name))
 
     hi = axs[-2].imshow(bg.background,interpolation='none',origin='lower')
     fg.colorbar(hi,ax=axs[-2])
-    axs[-2].set_title('background {}'.format(fnstar.stem))
+    axs[-2].set_title('background {}'.format(fnstar.name))
 
     hi = axs[-1].imshow(data, cmap='Greys', origin='lower', norm=norm,interpolation='none')
     fg.colorbar(hi,ax=axs[-1])
     for i,xy in enumerate(XY):
         axs[-1].text(xy[0],xy[1], str(i),ha='center',va='center',fontsize=16,color='w')
     apertures.plot(ax=axs[-1], color='blue', lw=1.5, alpha=0.5)
-    axs[-1].set_title('star {}'.format(fnstar.stem))
+    axs[-1].set_title('star {}'.format(fnstar.name))
 
     return dataphot[XY[istar,1].round().astype(int),
                     XY[istar,0].round().astype(int)]
