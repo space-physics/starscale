@@ -28,8 +28,9 @@ based on http://photutils.readthedocs.org/en/latest/photutils/detection.html
 """
 from pathlib import Path
 import h5py
-from numpy import column_stack,empty,rot90
+from numpy import column_stack,empty,rot90,median
 from photutils import daofind
+from astropy import units as u
 from astropy.stats import sigma_clipped_stats
 from photutils.background import Background
 from photutils import CircularAperture
@@ -39,6 +40,8 @@ from matplotlib.pyplot import subplots,show
 #
 from astrometry_azel.imgAvgStack import meanstack #reads the typical formats our group stores images in
 #
+camgain=200. #supposed
+
 def starbright(fnstar,fnflat,istar,axs,fg):
     #%% load data
     data = meanstack(fnstar,100)[0]
@@ -48,17 +51,21 @@ def starbright(fnstar,fnflat,istar,axs,fg):
     #%% background
     mean, median, std = sigma_clipped_stats(data, sigma=3.0)
 
-    rfact=data.shape[0]//32
-    cfact=data.shape[1]//32
-    bg = Background(data,(rfact,cfact),interp_order=5)
-
-    dataphot = data - bg.background
+    rfact=data.shape[0]//40
+    cfact=data.shape[1]//40
+    bg = Background(data,(rfact,cfact),interp_order=1, sigclip_sigma=3)
+# http://docs.astropy.org/en/stable/units/#module-astropy.units
+    #dataphot = (data - bg.background)*u.ph/(1e-4*u.m**2 * u.s * u.sr)
+ #   data = (data-0.97*data.min()/bg.background.min()*bg.background) * u.ph/(u.cm**2 * u.s * u.sr)
+    data = data* u.ph/(u.cm**2 * u.s * u.sr)
     #%% source extraction
-    sources = daofind(data - median, fwhm=3.0, threshold=5*std)
+    sources = daofind(data, fwhm=3.0, threshold=5*std)
     #%% star identification and quantification
     XY = column_stack((sources['xcentroid'], sources['ycentroid']))
     apertures = CircularAperture(XY, r=4.)
     norm = ImageNormalize(stretch=SqrtStretch())
+
+    flux = apertures.do_photometry(data,effective_gain=camgain)[0]
 #%% plots
     fg.suptitle('{}'.format(fnflat.parent),fontsize='x-large')
 
@@ -70,15 +77,15 @@ def starbright(fnstar,fnflat,istar,axs,fg):
     fg.colorbar(hi,ax=axs[-2])
     axs[-2].set_title('background {}'.format(fnstar.name))
 
-    hi = axs[-1].imshow(data, cmap='Greys', origin='lower', norm=norm,interpolation='none')
+    hi = axs[-1].imshow(data.value,
+                    cmap='Greys', origin='lower', norm=norm,interpolation='none')
     fg.colorbar(hi,ax=axs[-1])
     for i,xy in enumerate(XY):
         axs[-1].text(xy[0],xy[1], str(i),ha='center',va='center',fontsize=16,color='w')
     apertures.plot(ax=axs[-1], color='blue', lw=1.5, alpha=0.5)
     axs[-1].set_title('star {}'.format(fnstar.name))
 
-    return dataphot[XY[istar,1].round().astype(int),
-                    XY[istar,0].round().astype(int)]
+    return flux[istar]
 
 def readflat(fnflat,fnstar):
     """
@@ -103,5 +110,7 @@ if __name__ == '__main__':
     fg,axs= subplots(2,3)
     for i,(fs,ff,ax) in enumerate(zip(fstar,fflat,axs)):
         bstar[:,i] = starbright(path/fs, path/ff, slist[:,i], ax, fg)
+
+    print('median hst0/hst1 {}'.format(median(bstar[:,0]/bstar[:,1])))
 
     show()
