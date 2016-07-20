@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 #from scipy.ndimage.filters import maximum_filter
 from pathlib import Path
 from skimage.feature import peak_local_max
