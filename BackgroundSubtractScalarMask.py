@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 """
 Astronomical Image Scalar Background Subtraction with Source Masking
 - Estimates background noise level as a scalar, after masking out stars
