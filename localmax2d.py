@@ -26,7 +26,7 @@ def get2Dpeaks(img,fn,mindist,relintthres):
                            exclude_border=False,indices=True)
     fg = figure()
     ax = fg.gca()
-    hi = ax.imshow(img, cmap='jet',norm=LogNorm())
+    hi = ax.imshow(img, cmap='gray',norm=LogNorm())
     fg.colorbar(hi).set_label('data numbers')
 
     ax.autoscale(False)
