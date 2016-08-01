@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 """
 Compute Intensity Ratio between cameras.
 This is useful as cameras with the same optics and after de-vignetting will
@@ -26,7 +26,7 @@ cd histutils
 
 based on http://photutils.readthedocs.org/en/latest/photutils/detection.html
 """
-from pathlib import Path
+from starscale import Path
 import h5py
 from numpy import column_stack,empty,rot90,median
 from photutils import daofind

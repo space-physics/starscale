@@ -34,7 +34,9 @@ useful for radar, blood cells, stars, etc.::
 
 AstroPy Constrast Stretching Plots
 ----------------------------------
+.. image:: norm.png
+    :alt: image normalization with AstroPy
 AstroPy builds in several types of contrast stretching used with Matplotlib
 besides the usual Linear or Log normalization::
 
-	python PlotContrastStretch.py
+	python PlotContrastStretch.py tests/PKR_DASC_0558_20151007_060527.611.FITS
