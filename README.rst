@@ -28,6 +28,9 @@ Source Extraction using DAOFIND (good for isolated stars)
 
 Local maxima finder
 -------------------
+.. image:: peaks.png
+    :alt: peak finding stars
+
 useful for radar, blood cells, stars, etc.::
 
     python localmax2d.py test/hst0cal.fits
@@ -36,6 +39,7 @@ AstroPy Constrast Stretching Plots
 ----------------------------------
 .. image:: norm.png
     :alt: image normalization with AstroPy
+
 AstroPy builds in several types of contrast stretching used with Matplotlib
 besides the usual Linear or Log normalization::
 
