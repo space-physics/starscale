@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 """
 Takes FITS image stack of a uniformly illuminated field (e.g. tungsten light box)
 and discards the first "bad" image in the stack, then takes the mean of the other images
@@ -7,7 +7,7 @@ and saves the result to an HDF5 file.
 To do tomographic analysis, you must take into account the vignetting of the optical
 system via flat-fielding, plus the background subtraction
 """
-from pathlib import Path
+from starscale import Path
 from matplotlib.pyplot import show
 #
 from astrometry_azel.imgAvgStack import meanstack

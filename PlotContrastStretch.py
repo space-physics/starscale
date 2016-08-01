@@ -1,49 +1,60 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 """
 Example of the Contrast Stretch options in AstroPy, that you might find handy
 in cytometry or other non-astronomical pursuits as well.
 """
+from starscale import Path
 from astropy.io import fits
 import astropy.visualization as vis
 from astropy.visualization.mpl_normalize import ImageNormalize
-from matplotlib.pyplot import figure,draw,pause,show
+from matplotlib.pyplot import subplots,show
 from matplotlib.colors import LogNorm
 
-fn = 'test/hst0cal.fits'
 
 def plotcontrast(img):
     """
-    refer to http://astrofrog-debug.readthedocs.org/en/latest/visualization/
-    for parameters
+    http://docs.astropy.org/en/stable/visualization/index.html
     """
-    vistypes = (vis.AsinhStretch(),
-                #vis.ContrastBiasStretch(),
+    vistypes = (None,
+                LogNorm(),
+                vis.AsinhStretch(),
+                vis.ContrastBiasStretch(1,0.5),
+                vis.HistEqStretch(img),
                 vis.LinearStretch(),
                 vis.LogStretch(),
-                vis.PowerDistStretch(),
-                #vis.PowerStretch(),
+                vis.PowerDistStretch(a=10.),
+                vis.PowerStretch(a=10.),
                 vis.SinhStretch(),
                 vis.SqrtStretch(),
                 vis.SquaredStretch())
 
-    for v in vistypes:
-        norm = ImageNormalize(stretch=v)
-        ax = figure().gca()
-        ax.imshow(img,origin='lower',cmap='gray',norm=norm)
-        ax.set_title(str(v.__class__))
-        draw(); pause(0.001) #let's throw an error now if there's a problem
+    fg,ax = subplots(4,3,figsize=(10,10))
+    ax = ax.ravel()
 
+    for i,v in enumerate(vistypes):
+        #a = figure().gca()
+        a = ax[i]
+        if v and not isinstance(v,LogNorm):
+            norm = ImageNormalize(stretch=v)
+            a.set_title(str(v.__class__).split('.')[-1].split("'")[0])
+        else:
+            norm = v
+            a.set_title(str(v).split('.')[-1].split(" ")[0])
 
-    ax = figure().gca()
-    ax.imshow(img,origin='lower',cmap='gray',norm=LogNorm())
-    ax.set_title('matplotlib LogNorm()')
+        a.imshow(img,origin='lower',cmap='gray',norm=norm)
+        a.axis('off')
+
+    fg.suptitle('Matplotlib/AstroPy normalizations')
+    #fg.tight_layout()
 
 def getimage(fn):
+    fn = Path(fn).expanduser()
     with fits.open(str(fn),mode='readonly') as h:
         return h[0].data
 
 if __name__ == '__main__':
-    img = getimage(fn)
+    from sys import argv
+    img = getimage(argv[1])
     plotcontrast(img)
 
     show()
