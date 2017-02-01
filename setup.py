@@ -1,19 +1,14 @@
 #!/usr/bin/env python
 
 from setuptools import setup
-import subprocess
-
 try:
-    subprocess.call(['conda','install','--quiet','--file','requirements.txt'])
+    import conda.cli
+    conda.cli.main('install','--file','requirements.txt')
 except Exception as e:
-    pass
+    print(e)
 
 setup(name='starscale',
-	description='Examples of source extraction and photometry with AstroPy',
-	author='Michael Hirsch',
-	url='https://github.com/scienceopen/starscale',
-	install_requires=['photutils','pathlib2'],
-   	dependency_links = [],
+	install_requires=['photutils'],
       packages=['starscale'],
 	  )
 

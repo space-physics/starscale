@@ -26,7 +26,7 @@ cd histutils
 
 based on http://photutils.readthedocs.org/en/latest/photutils/detection.html
 """
-from starscale import Path
+from pathlib import Path
 import h5py
 from numpy import column_stack,empty,rot90,median
 from photutils import daofind

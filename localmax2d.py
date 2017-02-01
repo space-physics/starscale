@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #from scipy.ndimage.filters import maximum_filter
-from starscale import Path
+from pathlib import Path
 from skimage.feature import peak_local_max
 from astropy.io import fits
 from skimage.draw import circle

@@ -3,7 +3,7 @@
 Example of the Contrast Stretch options in AstroPy, that you might find handy
 in cytometry or other non-astronomical pursuits as well.
 """
-from starscale import Path
+from pathlib import Path
 from astropy.io import fits
 import astropy.visualization as vis
 from astropy.visualization.mpl_normalize import ImageNormalize
@@ -53,8 +53,12 @@ def getimage(fn):
         return h[0].data
 
 if __name__ == '__main__':
-    from sys import argv
-    img = getimage(argv[1])
+    from argparse import ArgumentParser
+    p = ArgumentParser()
+    p.add_argument('fn')
+    p = p.parse_args()
+
+    img = getimage(p.fn)
     plotcontrast(img)
 
     show()

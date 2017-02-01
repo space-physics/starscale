@@ -7,7 +7,7 @@ and saves the result to an HDF5 file.
 To do tomographic analysis, you must take into account the vignetting of the optical
 system via flat-fielding, plus the background subtraction
 """
-from starscale import Path
+from pathlib import Path
 from matplotlib.pyplot import show
 #
 from astrometry_azel.imgAvgStack import meanstack
@@ -19,9 +19,14 @@ from starscale.flatfield import writeflatfield,plotflatfield
 method='median'
 
 if __name__ == "__main__":
-    mimg = meanstack(fn,slice(1,None),method=method)[0]
+    from argparse import ArgumentParser
+    p = ArgumentParser()
+    p.add_argument('fn')
+    p = p.parse_args()
 
-    ofn = Path(fn).expanduser().with_suffix('.h5')
+    mimg = meanstack(p.fn,slice(1,None),method=method)[0]
+
+    ofn = Path(p.fn).expanduser().with_suffix('.h5')
     writeflatfield(ofn,mimg)
 
     plotflatfield(mimg)
