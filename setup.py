@@ -1,14 +1,13 @@
 #!/usr/bin/env python
-
 from setuptools import setup
-try:
-    import conda.cli
-    conda.cli.main('install','--file','requirements.txt')
-except Exception as e:
-    print(e)
+
+req = ['nose','sympy','scikit-image','astropy','matplotlib',
+       'photutils']
 
 setup(name='starscale',
-	install_requires=['photutils'],
       packages=['starscale'],
+      author='Michael Hirsch, Ph.D.',
+      url = 'https://www.github.com/scivision/starscale',
+      install_requires=req,
 	  )
 

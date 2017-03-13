@@ -1,6 +1,0 @@
-setuptools
-nose
-sympy
-scikit-image
-astropy
-matplotlib
