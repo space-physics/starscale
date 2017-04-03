@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 from setuptools import setup
 
-req = ['nose','sympy','scikit-image','astropy','matplotlib',
+req = ['nose','sympy','scikit-image','astropy','matplotlib','h5py',
        'photutils']
 
 setup(name='starscale',
