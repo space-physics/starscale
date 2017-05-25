@@ -1,4 +1,9 @@
-language: generic
+language: python
+
+python:
+  - 3.6
+
+os: linux
 
 notifications:
     email: false
@@ -6,10 +11,6 @@ notifications:
 git:
     depth: 3
 
-matrix:
-  include:
-    - os: linux
-      env: pyv=3.6
 
 before_install:
     - if [[ $TRAVIS_OS_NAME == osx ]]; then
@@ -25,12 +26,12 @@ install:
     
     - conda config --set always_yes yes --set changeps1 no
     - conda update -q conda
-    - conda create -n test python=$pyv
+    - conda create -n test python=$TRAVIS_PYTHON_VERSION
     - source activate test
     - pip -q install coveralls
-    - conda install astropy matplotlib scikit-image h5py
+
     - python setup.py develop
 
-script: coverage run tests/test.py
+script: coverage run tests/test.py -v
 
 after_success: coveralls

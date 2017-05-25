@@ -1,3 +1,6 @@
+.. image:: https://travis-ci.org/scivision/starscale.svg?branch=master
+    :target: https://travis-ci.org/scivision/starscale
+
 =======================================
 Star Scalar (Photometry and Astrometry)
 =======================================
