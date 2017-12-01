@@ -1,21 +1,16 @@
 #!/usr/bin/env python
-req = ['nose','sympy','scikit-image','astropy','matplotlib','h5py',]
-pipreq = ['photutils']
-
-import pip
-try:
-    import conda.cli
-    conda.cli.main('install',*req)
-except Exception:
-    pip.main(['install'] + req)
-pip.main(['install'] +pipreq)
-# %%
+install_requires = ['sympy','scikit-image','astropy','matplotlib','h5py',
+        'photutils']
+tests_require=['nose','coveralls']
 from setuptools import setup
 
 setup(name='starscale',
       packages=['starscale'],
       author='Michael Hirsch, Ph.D.',
       url = 'https://www.github.com/scivision/starscale',
-      install_requires=req+pipreq,
+      install_requires=install_requires,
+      python_requires='>=3.5',
+      extras_require={'tests':tests_require},
+      tests_require=tests_require,
 	  )
 
