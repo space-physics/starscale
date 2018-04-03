@@ -18,9 +18,9 @@ from matplotlib.pyplot import figure,subplots,show
 import seaborn as sns
 sns.set_context('talk')
 #
-from astrometry_azel.imgAvgStack import meanstack #reads the typical formats our group stores images in
+from astrometry_azel.io import meanstack #reads the typical formats our group stores images in
 #
-infn = '../astrometry_azel/test/apod4.fits'
+infn = '../astrometry_azel/tests/apod4.fits'
 
 data = meanstack(infn,1)[0]
 

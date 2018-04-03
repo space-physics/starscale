@@ -10,7 +10,7 @@ system via flat-fielding, plus the background subtraction
 from pathlib import Path
 from matplotlib.pyplot import show
 #
-from astrometry_azel.imgAvgStack import meanstack
+from astrometry_azel.io import meanstack
 from starscale.flatfield import writeflatfield,plotflatfield
 
 # these files in Dropbox as hst0flat.h5, hst1flat.h5

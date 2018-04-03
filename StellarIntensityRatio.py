@@ -38,7 +38,7 @@ from astropy.visualization import SqrtStretch
 from astropy.visualization.mpl_normalize import ImageNormalize
 from matplotlib.pyplot import subplots,show
 #
-from astrometry_azel.imgAvgStack import meanstack #reads the typical formats our group stores images in
+from astrometry_azel.io import meanstack #reads the typical formats our group stores images in
 #
 camgain=200. #supposed
 
