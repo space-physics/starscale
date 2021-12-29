@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """
 Takes FITS image stack of a uniformly illuminated field (e.g. tungsten light box)
 and discards the first "bad" image in the stack, then takes the mean of the other images
@@ -8,27 +8,28 @@ To do tomographic analysis, you must take into account the vignetting of the opt
 system via flat-fielding, plus the background subtraction
 """
 from pathlib import Path
+from argparse import ArgumentParser
+
 from matplotlib.pyplot import show
+
 #
 from astrometry_azel.io import meanstack
-from starscale.flatfield import writeflatfield,plotflatfield
+from starscale.flatfield import writeflatfield, plotflatfield
 
 # these files in Dropbox as hst0flat.h5, hst1flat.h5
-#fn = '~/HST/calibration/flatfield/hist0/TungstenUltra53HzG2EM20_A.fits'
-#fn = '~/HST/calibration/flatfield/hist1/tungstenExternal30fps_preamp1EM200.fits'
-method='median'
+# fn = '~/HST/calibration/flatfield/hist0/TungstenUltra53HzG2EM20_A.fits'
+# fn = '~/HST/calibration/flatfield/hist1/tungstenExternal30fps_preamp1EM200.fits'
+method = "median"
 
-if __name__ == "__main__":
-    from argparse import ArgumentParser
-    p = ArgumentParser()
-    p.add_argument('fn')
-    p = p.parse_args()
+p = ArgumentParser()
+p.add_argument("fn")
+p = p.parse_args()
 
-    mimg = meanstack(p.fn,slice(1,None),method=method)[0]
+mimg = meanstack(p.fn, slice(1, None), method=method)[0]
 
-    ofn = Path(p.fn).expanduser().with_suffix('.h5')
-    writeflatfield(ofn,mimg)
+ofn = Path(p.fn).expanduser().with_suffix(".h5")
+writeflatfield(ofn, mimg)
 
-    plotflatfield(mimg)
+plotflatfield(mimg, ofn, method)
 
-    show()
+show()

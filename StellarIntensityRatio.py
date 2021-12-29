@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """
 Compute Intensity Ratio between cameras.
 This is useful as cameras with the same optics and after de-vignetting will
@@ -28,7 +28,7 @@ based on http://photutils.readthedocs.org/en/latest/photutils/detection.html
 """
 from pathlib import Path
 import h5py
-from numpy import column_stack,empty,rot90,median
+from numpy import column_stack, empty, rot90, median
 from photutils import daofind
 from astropy import units as u
 from astropy.stats import sigma_clipped_stats
@@ -36,81 +36,88 @@ from photutils.background import Background
 from photutils import CircularAperture
 from astropy.visualization import SqrtStretch
 from astropy.visualization.mpl_normalize import ImageNormalize
-from matplotlib.pyplot import subplots,show
-#
-from astrometry_azel.io import meanstack #reads the typical formats our group stores images in
-#
-camgain=200. #supposed
+from matplotlib.pyplot import subplots, show
 
-def starbright(fnstar,fnflat,istar,axs,fg):
-    #%% load data
-    data = meanstack(fnstar,100)[0]
-    #%% flat field
-    flatnorm = readflat(fnflat,fnstar)
-    data = (data/flatnorm).round().astype(data.dtype)
-    #%% background
+#
+from astrometry_azel.io import (
+    meanstack,
+)  # reads the typical formats our group stores images in
+
+#
+camgain = 200.0  # supposed
+
+
+def starbright(fnstar, fnflat, istar, axs, fg):
+    # %% load data
+    data = meanstack(fnstar, 100)[0]
+    # %% flat field
+    flatnorm = readflat(fnflat, fnstar)
+    data = (data / flatnorm).round().astype(data.dtype)
+    # %% background
     mean, median, std = sigma_clipped_stats(data, sigma=3.0)
 
-    rfact=data.shape[0]//40
-    cfact=data.shape[1]//40
-    bg = Background(data,(rfact,cfact),interp_order=1, sigclip_sigma=3)
-# http://docs.astropy.org/en/stable/units/#module-astropy.units
-    #dataphot = (data - bg.background)*u.ph/(1e-4*u.m**2 * u.s * u.sr)
- #   data = (data-0.97*data.min()/bg.background.min()*bg.background) * u.ph/(u.cm**2 * u.s * u.sr)
-    data = data* u.ph/(u.cm**2 * u.s * u.sr)
-    #%% source extraction
-    sources = daofind(data, fwhm=3.0, threshold=5*std)
-    #%% star identification and quantification
-    XY = column_stack((sources['xcentroid'], sources['ycentroid']))
-    apertures = CircularAperture(XY, r=4.)
+    rfact = data.shape[0] // 40
+    cfact = data.shape[1] // 40
+    bg = Background(data, (rfact, cfact), interp_order=1, sigclip_sigma=3)
+    # http://docs.astropy.org/en/stable/units/#module-astropy.units
+    # dataphot = (data - bg.background)*u.ph/(1e-4*u.m**2 * u.s * u.sr)
+    #   data = (data-0.97*data.min()/bg.background.min()*bg.background) * u.ph/(u.cm**2 * u.s * u.sr)
+    data = data * u.ph / (u.cm ** 2 * u.s * u.sr)
+    # %% source extraction
+    sources = daofind(data, fwhm=3.0, threshold=5 * std)
+    # %% star identification and quantification
+    XY = column_stack((sources["xcentroid"], sources["ycentroid"]))
+    apertures = CircularAperture(XY, r=4.0)
     norm = ImageNormalize(stretch=SqrtStretch())
 
-    flux = apertures.do_photometry(data,effective_gain=camgain)[0]
-#%% plots
-    fg.suptitle('{}'.format(fnflat.parent),fontsize='x-large')
+    flux = apertures.do_photometry(data, effective_gain=camgain)[0]
+    # %% plots
+    fg.suptitle("{}".format(fnflat.parent), fontsize="x-large")
 
-    hi = axs[-3].imshow(flatnorm,interpolation='none',origin='lower')
-    fg.colorbar(hi,ax=axs[-3])
-    axs[-3].set_title('flatfield {}'.format(fnflat.name))
+    hi = axs[-3].imshow(flatnorm, interpolation="none", origin="lower")
+    fg.colorbar(hi, ax=axs[-3])
+    axs[-3].set_title("flatfield {}".format(fnflat.name))
 
-    hi = axs[-2].imshow(bg.background,interpolation='none',origin='lower')
-    fg.colorbar(hi,ax=axs[-2])
-    axs[-2].set_title('background {}'.format(fnstar.name))
+    hi = axs[-2].imshow(bg.background, interpolation="none", origin="lower")
+    fg.colorbar(hi, ax=axs[-2])
+    axs[-2].set_title("background {}".format(fnstar.name))
 
-    hi = axs[-1].imshow(data.value,
-                    cmap='Greys', origin='lower', norm=norm,interpolation='none')
-    fg.colorbar(hi,ax=axs[-1])
-    for i,xy in enumerate(XY):
-        axs[-1].text(xy[0],xy[1], str(i),ha='center',va='center',fontsize=16,color='w')
-    apertures.plot(ax=axs[-1], color='blue', lw=1.5, alpha=0.5)
-    axs[-1].set_title('star {}'.format(fnstar.name))
+    hi = axs[-1].imshow(data.value, cmap="Greys", origin="lower", norm=norm, interpolation="none")
+    fg.colorbar(hi, ax=axs[-1])
+    for i, xy in enumerate(XY):
+        axs[-1].text(xy[0], xy[1], str(i), ha="center", va="center", fontsize=16, color="w")
+    apertures.plot(ax=axs[-1], color="blue", lw=1.5, alpha=0.5)
+    axs[-1].set_title("star {}".format(fnstar.name))
 
     return flux[istar]
 
-def readflat(fnflat,fnstar):
+
+def readflat(fnflat, fnstar):
     """
     star is used to get orientation info, the flat field has to be rotated to match
     the star field.
     """
-    with h5py.File(str(fnflat),'r',libver='latest') as f, h5py.File(str(fnstar),'r',libver='latest') as g:
-        return rot90(f['flatnorm'], g['params']['rotccw'])
+    with h5py.File(str(fnflat), "r", libver="latest") as f, h5py.File(
+        str(fnstar), "r", libver="latest"
+    ) as g:
+        return rot90(f["flatnorm"], g["params"]["rotccw"])
 
 
-if __name__ == '__main__':
-    #fn = '../astrometry_azel/test/apod4.fits'
-    path = '~/Dropbox/aurora_data/StudyEvents/2013-04-14/HST/'
-    fstar = ('hst0star.h5', 'hst1star.h5')
-    fflat = ('hst0flat.h5', 'hst1flat.h5')
+if __name__ == "__main__":
+    # fn = '../astrometry_azel/test/apod4.fits'
+    path = "~/Dropbox/aurora_data/StudyEvents/2013-04-14/HST/"
+    fstar = ("hst0star.h5", "hst1star.h5")
+    fflat = ("hst0flat.h5", "hst1flat.h5")
     # a manually identified pairing of stars (could be automatic but this is a one-off)
-    slist = column_stack((range(1,8), range(1,8)))
-#%%
+    slist = column_stack((range(1, 8), range(1, 8)))
+    # %%
     path = Path(path).expanduser()
     bstar = empty(slist.shape)
 
-    fg,axs= subplots(2,3)
-    for i,(fs,ff,ax) in enumerate(zip(fstar,fflat,axs)):
-        bstar[:,i] = starbright(path/fs, path/ff, slist[:,i], ax, fg)
+    fg, axs = subplots(2, 3)
+    for i, (fs, ff, ax) in enumerate(zip(fstar, fflat, axs)):
+        bstar[:, i] = starbright(path / fs, path / ff, slist[:, i], ax, fg)
 
-    print('median hst0/hst1 {}'.format(median(bstar[:,0]/bstar[:,1])))
+    print("median hst0/hst1 {}".format(median(bstar[:, 0] / bstar[:, 1])))
 
     show()
